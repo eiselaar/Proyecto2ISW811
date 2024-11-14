@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\User;
+use App\Models\SocialAccount;
 class Post extends Model
 {
     protected $fillable = [
@@ -19,8 +20,16 @@ class Post extends Model
         'published_at' => 'datetime',
     ];
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class);
-    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function socialAccounts()
+    {
+        return $this->belongsToMany(SocialAccount::class, 'post_social_accounts')
+            ->withPivot('post_id_on_social')
+            ->withTimestamps();
+    }
+    
 }
