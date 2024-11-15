@@ -8,7 +8,7 @@ use PragmaRX\Google2FA\Google2FA;
 use Illuminate\Http\Request;
 
 
-class TwoFactorController extends Controller
+class Google2FAController extends Controller
 {
     // protected $google2fa;
 
