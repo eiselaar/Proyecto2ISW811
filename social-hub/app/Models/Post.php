@@ -1,22 +1,26 @@
 <?php
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\SocialAccount;
+use App\Models\QueuedPost;
 class Post extends Model
 {
     protected $fillable = [
         'user_id',
         'content',
-        'social_networks',
-        'status',
-        'scheduled_at',
+        'media_urls',
+        'platforms',
         'published_at',
+        'status',
+        'platform_post_ids',
     ];
 
     protected $casts = [
-        'social_networks' => 'array',
-        'scheduled_at' => 'datetime',
+        'media_urls' => 'array',
+        'platforms' => 'array',
+        'platform_post_ids' => 'array',
         'published_at' => 'datetime',
     ];
 
@@ -25,11 +29,24 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function socialAccounts()
+    public function queuedPost()
     {
-        return $this->belongsToMany(SocialAccount::class, 'post_social_accounts')
-            ->withPivot('post_id_on_social')
-            ->withTimestamps();
+        return $this->hasOne(QueuedPost::class);
+    }
+
+    public function isQueued()
+    {
+        return $this->status === 'queued';
+    }
+
+    public function isPublished()
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft()
+    {
+        return $this->status === 'draft';
     }
     
 }

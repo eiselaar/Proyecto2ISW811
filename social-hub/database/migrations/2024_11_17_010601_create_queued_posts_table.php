@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posting_schedules', function (Blueprint $table) {
+        Schema::create('queued_posts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('post_id')->constrained()->onDelete('cascade');
+            $table->timestamp('scheduled_for')->nullable();
+            $table->boolean('is_scheduled')->default(false);
+            $table->integer('attempts')->default(0);
+            $table->text('last_error')->nullable();
             $table->timestamps();
         });
     }
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posting_schedules');
+        Schema::dropIfExists('queued_posts');
     }
 };

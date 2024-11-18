@@ -2,63 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
+use App\Models\QueuedPost;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index()
     {
-        //
+        $posts = auth()->user()->posts()
+            ->latest()
+            ->paginate(10);
+
+        return view('posts.index', compact('posts'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $connectedPlatforms = auth()->user()->socialAccounts()
+            ->pluck('provider')
+            ->toArray();
+
+        return view('posts.create', compact('connectedPlatforms'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'content' => 'required|string|max:280',
+            'platforms' => 'required|array',
+            'platforms.*' => 'required|string|in:twitter,reddit,mastodon',
+            'schedule_type' => 'required|in:now,queue,scheduled',
+            'scheduled_for' => 'required_if:schedule_type,scheduled|nullable|date|after:now',
+        ]);
+
+        $post = auth()->user()->posts()->create([
+            'content' => $validated['content'],
+            'platforms' => $validated['platforms'],
+            'status' => $validated['schedule_type'] === 'now' ? 'pending' : 'queued',
+        ]);
+
+        if ($validated['schedule_type'] !== 'now') {
+            QueuedPost::create([
+                'post_id' => $post->id,
+                'scheduled_for' => $validated['scheduled_for'] ?? null,
+                'is_scheduled' => $validated['schedule_type'] === 'scheduled',
+            ]);
+        } else {
+            // Dispatch job to publish immediately
+            // PublishPost::dispatch($post);
+        }
+
+        return redirect()->route('posts.index')
+            ->with('success', 'Post created successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function queue()
     {
-        //
-    }
+        $queuedPosts = auth()->user()->posts()
+            ->whereHas('queuedPost')
+            ->with('queuedPost')
+            ->latest()
+            ->paginate(10);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return view('posts.queue', compact('queuedPosts'));
     }
 }

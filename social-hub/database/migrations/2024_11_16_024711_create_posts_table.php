@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->text('content');
+            $table->json('media_urls')->nullable();
+            $table->json('platforms'); // ['twitter', 'reddit', 'mastodon']
+            $table->timestamp('published_at')->nullable();
+            $table->string('status')->default('draft'); // draft, queued, published, failed
+            $table->json('platform_post_ids')->nullable(); // Store IDs from each platform
             $table->timestamps();
         });
     }
