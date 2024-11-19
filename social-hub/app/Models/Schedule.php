@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Schedule extends Model
 {
@@ -15,23 +16,21 @@ class Schedule extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'time' => 'datetime',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function getNextScheduledTime()
+    public function getNextOccurrence()
     {
         $now = now();
         $scheduleTime = today()
-            ->setTime(
-                (int) $this->time->format('H'),
-                (int) $this->time->format('i')
-            );
+            ->setTimeFromTimeString($this->time->format('H:i:s'));
         
-        while ($scheduleTime->dayOfWeek !== $this->day_of_week || $scheduleTime->isPast()) {
+        while ($scheduleTime->dayOfWeek !== $this->day_of_week || $scheduleTime <= $now) {
             $scheduleTime->addDay();
         }
 

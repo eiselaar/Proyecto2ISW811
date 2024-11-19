@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class QueuedPost extends Pivot
+class QueuedPost extends Model
 {
     protected $fillable = [
         'post_id',
@@ -18,19 +20,27 @@ class QueuedPost extends Pivot
         'is_scheduled' => 'boolean',
     ];
 
-    public function post()
+    public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
     }
 
-    public function shouldRetry()
+    public function shouldRetry(): bool
     {
         return $this->attempts < 3;
     }
 
-    public function incrementAttempts()
+    public function incrementAttempts(): void
     {
-        $this->attempts++;
-        $this->save();
+        $this->increment('attempts');
+    }
+
+    public function isReadyToPublish(): bool
+    {
+        if ($this->is_scheduled) {
+            return $this->scheduled_for <= now();
+        }
+
+        return true;
     }
 }

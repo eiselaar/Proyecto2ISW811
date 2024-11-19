@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\User;
 
 class Require2FA
 {
@@ -13,8 +12,8 @@ class Require2FA
         $user = auth()->user();
 
         if ($user && $user->two_factor_enabled && !session('2fa_verified')) {
-            // Guardar la URL intentada para redireccionar después de la verificación
-            session(['intended_url' => $request->url()]);
+            auth()->logout();
+            $request->session()->put('2fa:user_id', $user->id);
             return redirect()->route('2fa.verify');
         }
 

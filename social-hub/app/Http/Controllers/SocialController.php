@@ -5,16 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\SocialAccount;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
-use App\Http\Controllers\Controller;  
 
 class SocialController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware("auth");
-    }
-
-    public function connect($provider)
+    public function redirect($provider)
     {
         return Socialite::driver($provider)
             ->scopes($this->getScopes($provider))
@@ -26,9 +20,8 @@ class SocialController extends Controller
         try {
             $socialUser = Socialite::driver($provider)->user();
             
-            $account = SocialAccount::updateOrCreate(
+            auth()->user()->socialAccounts()->updateOrCreate(
                 [
-                    'user_id' => auth()->id(),
                     'provider' => $provider,
                     'provider_id' => $socialUser->getId(),
                 ],
@@ -40,30 +33,20 @@ class SocialController extends Controller
                 ]
             );
 
-            return redirect()->route('dashboard')
-                ->with('success', "Successfully connected with {$provider}!");
+            return redirect()->route('social.accounts')
+                ->with('success', "Connected with $provider successfully!");
         } catch (\Exception $e) {
-            return redirect()->route('dashboard')
-                ->with('error', "Failed to connect with {$provider}.");
+            return redirect()->route('social.accounts')
+                ->with('error', "Failed to connect with $provider.");
         }
     }
 
-    public function disconnect($provider)
-    {
-        auth()->user()->socialAccounts()
-            ->where('provider', $provider)
-            ->delete();
-
-        return redirect()->route('dashboard')
-            ->with('success', "Disconnected from {$provider}.");
-    }
-
-    private function getScopes($provider)
+    private function getScopes($provider): array
     {
         return [
             'twitter' => ['tweet.read', 'tweet.write', 'users.read'],
-            'reddit' => ['submit', 'identity'],
-            'mastodon' => ['write:statuses', 'read:accounts']
+            'reddit' => ['identity', 'submit', 'edit'],
+            'mastodon' => ['read', 'write'],
         ][$provider] ?? [];
     }
 }
