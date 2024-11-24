@@ -19,7 +19,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
-
+        
+          
+    Blade::component('layout.app', AppLayout::class);
         // Registrar directivas Blade personalizadas
         Blade::directive('datetime', function ($expression) {
             return "<?php echo ($expression)->format('M d, Y H:i'); ?>";
