@@ -1,4 +1,3 @@
-<!-- resources/views/components/nav-link.blade.php -->
 @props(['active'])
 
 @php

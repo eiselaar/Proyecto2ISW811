@@ -12,7 +12,7 @@ use App\Http\Controllers\NotificationController;
 
 // Rutas públicas
 Route::get('/', function () {
-    return view('welcome');
+    return view('dashboard');
 });
 
 // Rutas de autenticación

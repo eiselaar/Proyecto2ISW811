@@ -1,0 +1,25 @@
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-start">
+        <div class="flex-1">
+            <p class="text-gray-900">{{ $post->content }}</p>
+            <div class="mt-2 flex flex-wrap gap-2">
+                @foreach($post->platforms as $platform)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ ucfirst($platform) }}
+                    </span>
+                @endforeach
+            </div>
+        </div>
+        <x-posts.post-status :status="$post->status" />
+    </div>
+    
+    @if($post->queuedPost)
+        <div class="mt-4 text-sm text-gray-500">
+            Scheduled for: {{ $post->queuedPost->scheduled_for->format('M d, Y H:i') }}
+        </div>
+    @endif
+
+    <div class="mt-4 flex justify-end space-x-2">
+        {{ $slot }}
+    </div>
+</div>
