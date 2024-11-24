@@ -20,8 +20,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
         
-          
-    Blade::component('layout.app', AppLayout::class);
+        // Registrar componentes
+        Blade::component('layouts.app', 'app-layout');
+        Blade::component('components.ui.application-logo', 'application-logo');  // Actualizado a la carpeta ui
+        Blade::component('components.navigation-link', 'navigation-link');
+        
         // Registrar directivas Blade personalizadas
         Blade::directive('datetime', function ($expression) {
             return "<?php echo ($expression)->format('M d, Y H:i'); ?>";

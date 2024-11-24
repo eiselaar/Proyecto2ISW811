@@ -1,58 +1,45 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
 @section('content')
-<div class="container mx-auto px-4">
-    <div class="flex justify-center">
-        <div class="w-full md:w-1/2 lg:w-1/3">
-            <div class="bg-white shadow-md rounded-lg p-6">
-                <h2 class="text-2xl font-bold mb-6">{{ __('Login') }}</h2>
+    <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+    
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-
-                    <div class="mb-4">
-                        <label for="email" class="block text-gray-700 text-sm font-bold mb-2">
-                            {{ __('Email Address') }}
-                        </label>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}"
-                               class="form-input @error('email') border-red-500 @enderror" required autofocus>
-                        @error('email')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="password" class="block text-gray-700 text-sm font-bold mb-2">
-                            {{ __('Password') }}
-                        </label>
-                        <input id="password" type="password" name="password"
-                               class="form-input @error('password') border-red-500 @enderror" required>
-                        @error('password')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" name="remember" class="form-checkbox">
-                            <span class="ml-2 text-sm text-gray-600">{{ __('Remember Me') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <button type="submit" class="btn-primary">
-                            {{ __('Login') }}
-                        </button>
-
-                        @if (Route::has('password.request'))
-                            <a class="text-sm text-blue-600 hover:text-blue-800" href="{{ route('password.request') }}">
-                                {{ __('Forgot Your Password?') }}
-                            </a>
-                        @endif
-                    </div>
-                </form>
-            </div>
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            @error('email')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
         </div>
-    </div>
-</div>
+
+        <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input id="password" type="password" name="password" required
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            @error('password')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <label class="flex items-center">
+                <input type="checkbox" name="remember" class="rounded border-gray-300">
+                <span class="ml-2 text-sm text-gray-600">Remember me</span>
+            </label>
+        </div>
+
+        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Log in
+        </button>
+
+        <p class="mt-4 text-center text-sm text-gray-600">
+            Don't have an account?
+            <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800">
+                Register
+            </a>
+        </p>
+    </form>
 @endsection

@@ -1,141 +1,218 @@
-<x-layouts.app-layout> 
+@extends('layouts.app')
 
-<x-slot name="header">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Dashboard') }}
-            </h2>
-        </x-slot>
-    
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <!-- Stats Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
-                <x-ui.card>
+@section('content')
+<div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {{-- Stats Cards --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-indigo-500 text-white mr-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Posts</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['totalPosts'] }}</p>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-500">Total Posts</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ $stats['total_posts'] }}</div>
                         </div>
                     </div>
-                </x-ui.card>
-    
-                <x-ui.card>
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-500 text-white mr-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Connected Accounts</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['connectedAccounts'] }}</p>
-                        </div>
-                    </div>
-                </x-ui.card>
-    
-                <x-ui.card>
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-500 text-white mr-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Scheduled Posts</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['scheduledPosts'] }}</p>
-                        </div>
-                    </div>
-                </x-ui.card>
-    
-                <x-ui.card>
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Engagement</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['totalEngagement'] }}</p>
-                        </div>
-                    </div>
-                </x-ui.card>
-            </div>
-    
-            <!-- Upcoming Posts -->
-            <div class="p-6 border-t border-gray-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Upcoming Posts</h3>
-                    <x-forms.button href="{{ route('posts.index') }}">View All</x-forms.button>
-                </div>
-                
-                <div class="space-y-4">
-                    @forelse($upcomingPosts as $post)
-                        <x-posts.post-card :post="$post" />
-                    @empty
-                        <p class="text-gray-500 text-center py-4">No upcoming posts scheduled</p>
-                    @endforelse
                 </div>
             </div>
-    
-            <!-- Connected Accounts -->
-            <div class="p-6 border-t border-gray-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Connected Accounts</h3>
-                    <x-forms.button @click="$dispatch('open-modal', 'connect-account')">
-                        Connect New Account
-                    </x-forms.button>
-                </div>
-    
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @foreach($socialAccounts as $account)
-                        <x-social.account-card :account="$account" />
-                    @endforeach
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-500">Queued Posts</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ $stats['queued_posts'] }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-    
-            <!-- Weekly Schedule -->
-            <div class="p-6 border-t border-gray-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Weekly Schedule</h3>
-                    <x-forms.button href="{{ route('schedules.index') }}">Full Calendar</x-button>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-500">Scheduled Posts</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ $stats['scheduled_posts'] }}</div>
+                        </div>
+                    </div>
                 </div>
-                
-                <x-schedule.week-view />
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-500">Published Posts</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ $stats['published_posts'] }}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    
-        <!-- Connect Account Modal -->
-        <x-ui.modal name="connect-account" :show="false">
-            <div class="p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">
-                    Connect Social Media Account
-                </h2>
-    
-                <div class="space-y-4">
-                    @foreach($availablePlatforms as $platform)
-                        <a href="{{ route('social.connect', $platform) }}" 
-                           class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                            <div class="flex items-center">
-                                <x-social.platform-icon :platform="$platform" />
-                                <span class="ml-3 font-medium text-gray-900">
-                                    Connect {{ ucfirst($platform) }}
-                                </span>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {{-- Connected Platforms --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold mb-4">Connected Platforms</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                @foreach(['linkedin', 'mastodon', 'reddit'] as $platform)
+                                    <div class="flex items-center space-x-2">
+                                        <img src="{{ asset('images/' . $platform . '.svg') }}" 
+                                             alt="{{ $platform }}" 
+                                             class="w-6 h-6">
+                                        @if(in_array($platform, $connectedPlatforms))
+                                            <span class="text-green-600">Connected</span>
+                                        @else
+                                            <a href="{{ route('social.connect', $platform) }}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                Connect
+                                            </a>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
-                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    @endforeach
+                        </div>
+                    </div>
                 </div>
             </div>
-        </x-ui.modal>
-    
-</x-layouts.app-layout>
 
+            {{-- Quick Post --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold mb-4">Quick Post</h2>
+                    <form action="{{ route('posts.store') }}" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <textarea name="content"
+                                      rows="3"
+                                      required
+                                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                      placeholder="What's on your mind?"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Post to:
+                            </label>
+                            <div class="space-x-4">
+                                @foreach($connectedPlatforms as $platform)
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" 
+                                               name="platforms[]" 
+                                               value="{{ $platform }}"
+                                               class="rounded border-gray-300">
+                                        <span class="ml-2 text-sm text-gray-600">
+                                            {{ ucfirst($platform) }}
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                    class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Post Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-</x-modal>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            {{-- Recent Posts --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold mb-4">Recent Posts</h2>
+                    <div class="space-y-4">
+                        @forelse($recentPosts as $post)
+                            <div class="border rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <p class="text-sm text-gray-500">
+                                        Posted {{ $post->created_at->diffForHumans() }}
+                                    </p>
+                                    <span class="px-2 py-1 text-xs rounded-full {{ 
+                                        match($post->status) {
+                                            'published' => 'bg-green-100 text-green-800',
+                                            'scheduled' => 'bg-blue-100 text-blue-800',
+                                            'queued' => 'bg-yellow-100 text-yellow-800',
+                                            default => 'bg-gray-100 text-gray-800'
+                                        }
+                                    }}">
+                                        {{ ucfirst($post->status) }}
+                                    </span>
+                                </div>
+                                <p class="text-gray-700">{{ $post->content }}</p>
+                                <div class="mt-2 flex gap-2">
+                                    @foreach($post->platforms as $platform)
+                                        <img src="{{ asset('images/' . $platform . '.svg') }}" 
+                                             alt="{{ $platform }}" 
+                                             class="w-5 h-5">
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-gray-500">No recent posts.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            {{-- Upcoming Posts --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold mb-4">Upcoming Posts</h2>
+                    <div class="space-y-4">
+                        @forelse($upcomingPosts as $post)
+                            <div class="border rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p class="text-sm text-gray-500">
+                                            Scheduled for {{ $post->scheduled_at->format('M j, Y g:i A') }}
+                                        </p>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                        Scheduled
+                                    </span>
+                                </div>
+                                <p class="text-gray-700">{{ $post->content }}</p>
+                                <div class="mt-2 flex gap-2">
+                                    @foreach($post->platforms as $platform)
+                                        <img src="{{ asset('images/' . $platform . '.svg') }}" 
+                                             alt="{{ $platform }}" 
+                                             class="w-5 h-5">
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-gray-500">No upcoming posts scheduled.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

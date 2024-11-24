@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SocialController;
@@ -11,8 +12,14 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 
 // Rutas públicas
-Route::get('/', function () {
-    return view('dashboard');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Redirigir la raíz al dashboard para usuarios autenticados
+    Route::get('/', function () {
+        return redirect()->route('dashboard');
+    });
 });
 
 // Rutas de autenticación
@@ -37,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas protegidas por 2FA si está habilitado
     Route::middleware(['2fa'])->group(function () {
-        Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Rutas de posts
         Route::resource('posts', PostController::class);
