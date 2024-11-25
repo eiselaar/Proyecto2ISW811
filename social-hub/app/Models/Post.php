@@ -4,24 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Post extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'content',
-        'media_urls',
         'platforms',
         'status',
-        'platform_post_ids',
-        'published_at',
+        'scheduled_at',
+        'published_at'
     ];
 
     protected $casts = [
-        'media_urls' => 'array',
         'platforms' => 'array',
-        'platform_post_ids' => 'array',
+        'scheduled_at' => 'datetime',
         'published_at' => 'datetime',
     ];
 
@@ -30,31 +30,28 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function queuedPost(): HasOne
+    public function scopeDraft($query)
     {
-        return $this->hasOne(QueuedPost::class);
+        return $query->where('status', 'draft');
     }
 
-    public function isPublished(): bool
+    public function scopeQueued($query)
     {
-        return $this->status === 'published';
+        return $query->where('status', 'queued');
     }
 
-    public function isQueued(): bool
+    public function scopeScheduled($query)
     {
-        return $this->status === 'queued';
+        return $query->where('status', 'scheduled');
     }
 
-    public function isPending(): bool
+    public function scopePublished($query)
     {
-        return $this->status === 'pending';
+        return $query->where('status', 'published');
     }
 
-    public function markAsPublished(): void
+    public function scopeFailed($query)
     {
-        $this->update([
-            'status' => 'published',
-            'published_at' => now(),
-        ]);
+        return $query->where('status', 'failed');
     }
 }

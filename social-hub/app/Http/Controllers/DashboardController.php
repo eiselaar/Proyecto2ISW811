@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -12,7 +11,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         
-        // Inicializar las estadísticas con valores predeterminados
+        // Inicializar stats con valores predeterminados
         $stats = [
             'total_posts' => 0,
             'queued_posts' => 0,
@@ -20,7 +19,7 @@ class DashboardController extends Controller
             'published_posts' => 0
         ];
 
-        // Si el usuario está autenticado, obtener las estadísticas reales
+        // Solo obtener estadísticas si el usuario está autenticado
         if ($user) {
             $stats = [
                 'total_posts' => $user->posts()->count(),

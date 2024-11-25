@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -29,26 +30,15 @@ class User extends Authenticatable
         'two_factor_enabled' => 'boolean',
     ];
 
-    public function socialAccounts()
-    {
-        return $this->hasMany(SocialAccount::class);
-    }
-
-    public function posts()
+    public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
     }
 
-    public function schedules()
+    public function socialAccounts(): HasMany
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(SocialAccount::class);
     }
-
-    public function hasSocialAccount(string $provider): bool
-    {
-        return $this->socialAccounts()
-            ->where('provider', $provider)
-            ->exists();
-    }
+    
 }
 
