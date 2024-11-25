@@ -3,26 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\SocialAccount;
+use Exception;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialController extends Controller
 {
-    public function redirect($provider)
+    protected $allowedPlatforms = ['linkedin', 'mastodon', 'reddit'];
+
+    public function redirect(string $platform)
     {
-        return Socialite::driver($provider)
-            ->scopes($this->getScopes($provider))
-            ->redirect();
+        if (!in_array($platform, $this->allowedPlatforms)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Platform not supported.');
+        }
+
+        try {
+            return Socialite::driver($platform)->redirect();
+        } catch (Exception $e) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
+        }
     }
 
-    public function callback($provider)
+    public function callback(string $platform)
     {
         try {
-            $socialUser = Socialite::driver($provider)->user();
-            
-            auth()->user()->socialAccounts()->updateOrCreate(
+            $socialUser = Socialite::driver($platform)->user();
+
+            $account = SocialAccount::updateOrCreate(
                 [
-                    'provider' => $provider,
+                    'user_id' => auth()->id(),
+                    'provider' => $platform,
                     'provider_id' => $socialUser->getId(),
                 ],
                 [
@@ -33,20 +45,28 @@ class SocialController extends Controller
                 ]
             );
 
-            return redirect()->route('social.accounts')
-                ->with('success', "Connected with $provider successfully!");
-        } catch (\Exception $e) {
-            return redirect()->route('social.accounts')
-                ->with('error', "Failed to connect with $provider.");
+            return redirect()->route('dashboard')
+                ->with('status', ucfirst($platform) . ' account connected successfully.');
+
+        } catch (Exception $e) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }
     }
 
-    private function getScopes($provider): array
+    public function disconnect(string $platform)
     {
-        return [
-            'twitter' => ['tweet.read', 'tweet.write', 'users.read'],
-            'reddit' => ['identity', 'submit', 'edit'],
-            'mastodon' => ['read', 'write'],
-        ][$provider] ?? [];
+        try {
+            auth()->user()->socialAccounts()
+                ->where('provider', $platform)
+                ->delete();
+
+            return redirect()->route('dashboard')
+                ->with('status', ucfirst($platform) . ' account disconnected successfully.');
+
+        } catch (Exception $e) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Unable to disconnect ' . ucfirst($platform) . '. Please try again.');
+        }
     }
 }

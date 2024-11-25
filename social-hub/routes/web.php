@@ -56,13 +56,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('schedules/{schedule}/toggle', [ScheduleController::class, 'toggle'])
             ->name('schedules.toggle');
 
-        // Rutas de redes sociales
-        Route::prefix('social')->group(function () {
-            Route::get('accounts', [SocialController::class, 'index'])->name('social.accounts');
-            Route::get('{provider}/redirect', [SocialController::class, 'redirect'])->name('social.redirect');
-            Route::get('{provider}/callback', [SocialController::class, 'callback'])->name('social.callback');
-            Route::delete('{provider}/disconnect', [SocialController::class, 'disconnect'])->name('social.disconnect');
-        });
+
+            Route::middleware(['auth'])->group(function () {
+                Route::prefix('social')->name('social.')->group(function () {
+                    // Vista principal de cuentas sociales
+                    Route::get('accounts', [SocialController::class, 'index'])->name('accounts');
+                    
+                    // Conexión y autenticación
+                    Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
+                    Route::get('callback/{platform}', [SocialController::class, 'callback'])->name('callback');
+                    
+                    // Desconexión
+                    Route::delete('disconnect/{platform}', [SocialController::class, 'disconnect'])->name('disconnect');
+                });
+            });
 
         // Rutas de notificaciones
         Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])

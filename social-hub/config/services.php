@@ -14,18 +14,37 @@ return [
     |
     */
 
+    'linkedin' => [
+        'client_id' => env('LINKEDIN_CLIENT_ID'),
+        'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
+        'redirect' => env('LINKEDIN_REDIRECT_URI'),
+    ],
+
+    'mastodon' => [
+        'domain' => env('MASTODON_DOMAIN'),
+        'client_id' => env('MASTODON_CLIENT_ID'),
+        'client_secret' => env('MASTODON_CLIENT_SECRET'),
+        'redirect' => env('MASTODON_REDIRECT_URI'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
+    ],
+
+    'reddit' => [
+        'client_id' => env('REDDIT_CLIENT_ID'),
+        'client_secret' => env('REDDIT_CLIENT_SECRET'),
+        'redirect' => env('REDDIT_REDIRECT_URI'),
+    ],
+
+    'resend' => [
+        'key' => env('RESEND_KEY'),
     ],
 
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-    ],
-
-    'resend' => [
-        'key' => env('RESEND_KEY'),
     ],
 
     'slack' => [
