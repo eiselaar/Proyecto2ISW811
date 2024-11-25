@@ -3,68 +3,78 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use PragmaRX\Google2FA\Google2FA;
 
 class TwoFactorController extends Controller
 {
-    public function verify()
-    {
-        return view('auth.two-factor.verify');
-    }
-
-    public function verifyCode(Request $request)
-    {
-        $request->validate([
-            'code' => 'required|string|size:6'
-        ]);
-
-        $userId = $request->session()->get('2fa:user_id');
-        $user = User::findOrFail($userId);
-        $google2fa = new Google2FA();
-
-        if ($google2fa->verifyKey($user->two_factor_secret, $request->code)) {
-            auth()->login($user);
-            $request->session()->forget('2fa:user_id');
-            return redirect()->intended('/dashboard');
-        }
-
-        return back()->withErrors(['code' => 'Invalid authentication code']);
-    }
-
     public function enable()
     {
-        $user = auth()->user();
-        $google2fa = new Google2FA();
-        
-        if (!$user->two_factor_secret) {
-            $user->two_factor_secret = $google2fa->generateSecretKey();
-            $user->save();
-        }
-
-        $qrCodeUrl = $google2fa->getQRCodeUrl(
-            config('app.name'),
-            $user->email,
-            $user->two_factor_secret
-        );
-
-        return view('auth.two-factor.enable', compact('qrCodeUrl'));
+        return view('auth.2fa.enable');
     }
 
-    public function disable(Request $request)
+    public function store(Request $request)
+    {
+        $google2fa = new Google2FA();
+        
+        if (!$request->session()->has('2fa_secret')) {
+            $secret = $google2fa->generateSecretKey();
+            $request->session()->put('2fa_secret', $secret);
+            
+            // Generar QR Code para mostrar
+            $qrCodeUrl = $google2fa->getQRCodeUrl(
+                config('app.name'),
+                auth()->user()->email,
+                $secret
+            );
+            
+            return redirect()->back()->with(['qr_code' => $qrCodeUrl]);
+        }
+
+        $request->validate([
+            'code' => ['required', 'string', 'size:6'],
+        ]);
+
+        $valid = $google2fa->verifyKey(
+            $request->session()->get('2fa_secret'), 
+            $request->code
+        );
+
+        if ($valid) {
+            auth()->user()->update([
+                'two_factor_enabled' => true,
+                'google2fa_secret' => $request->session()->get('2fa_secret'),
+            ]);
+            
+            $request->session()->forget('2fa_secret');
+            return redirect()->route('dashboard')->with('status', '2FA has been enabled.');
+        }
+
+        return back()->withErrors(['code' => 'The provided code is invalid.']);
+    }
+
+    public function verify()
+    {
+        return view('auth.2fa.verify');
+    }
+
+    public function verify2fa(Request $request)
     {
         $request->validate([
-            'password' => 'required|current_password'
+            'code' => ['required', 'string', 'size:6'],
         ]);
 
-        $user = auth()->user();
-        $user->update([
-            'two_factor_enabled' => false,
-            'two_factor_secret' => null
-        ]);
+        $google2fa = new Google2FA();
+        $valid = $google2fa->verifyKey(
+            auth()->user()->google2fa_secret,
+            $request->code
+        );
 
-        return redirect()->route('profile.show')
-            ->with('success', '2FA has been disabled.');
+        if ($valid) {
+            $request->session()->put('2fa_verified', true);
+            return redirect()->intended('dashboard');
+        }
+
+        return back()->withErrors(['code' => 'The provided code is invalid.']);
     }
 }
