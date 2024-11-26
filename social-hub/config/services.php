@@ -18,8 +18,9 @@ return [
         'client_id' => env('LINKEDIN_CLIENT_ID'),
         'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
         'redirect' => env('LINKEDIN_REDIRECT_URI'),
+        'scope' => ['openid', 'profile', 'email', 'w_member_social'],
+        'with' => []  // Esto asegura que no se agreguen scopes adicionales
     ],
-
     'mastodon' => [
         'domain' => env('MASTODON_DOMAIN'),
         'client_id' => env('MASTODON_CLIENT_ID'),

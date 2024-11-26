@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SocialAccount;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialController extends Controller
@@ -19,13 +20,23 @@ class SocialController extends Controller
         }
 
         try {
+            if ($platform === 'linkedin') {
+                return Socialite::driver($platform)
+                    ->setScopes(['openid', 'profile', 'email', 'w_member_social']) // Usa setScopes en lugar de scopes
+                    ->redirect();
+            }
+            
             return Socialite::driver($platform)->redirect();
         } catch (Exception $e) {
+            Log::error('Social redirect error', [
+                'platform' => $platform,
+                'error' => $e->getMessage()
+            ]);
+            
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }
     }
-
     public function callback(string $platform)
     {
         try {
@@ -40,7 +51,7 @@ class SocialController extends Controller
                 [
                     'provider_token' => $socialUser->token,
                     'provider_refresh_token' => $socialUser->refreshToken,
-                    'token_expires_at' => isset($socialUser->expiresIn) ? 
+                    'token_expires_at' => isset($socialUser->expiresIn) ?
                         now()->addSeconds($socialUser->expiresIn) : null,
                 ]
             );
@@ -49,6 +60,7 @@ class SocialController extends Controller
                 ->with('status', ucfirst($platform) . ' account connected successfully.');
 
         } catch (Exception $e) {
+            Log::info($e->getMessage());
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }

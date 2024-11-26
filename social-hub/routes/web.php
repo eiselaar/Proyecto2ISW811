@@ -15,7 +15,7 @@ use App\Http\Controllers\NotificationController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Redirigir la raíz al dashboard para usuarios autenticados
     Route::get('/', function () {
         return redirect()->route('dashboard');
@@ -33,7 +33,7 @@ Route::middleware('guest')->group(function () {
 // Rutas protegidas por autenticación
 Route::middleware(['auth'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-    
+
     // Rutas de 2FA
     Route::prefix('2fa')->group(function () {
         Route::get('enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
@@ -57,19 +57,20 @@ Route::middleware(['auth'])->group(function () {
             ->name('schedules.toggle');
 
 
-            Route::middleware(['auth'])->group(function () {
-                Route::prefix('social')->name('social.')->group(function () {
-                    // Vista principal de cuentas sociales
-                    Route::get('accounts', [SocialController::class, 'index'])->name('accounts');
-                    
-                    // Conexión y autenticación
-                    Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
-                    Route::get('callback/{platform}', [SocialController::class, 'callback'])->name('callback');
-                    
-                    // Desconexión
-                    Route::delete('disconnect/{platform}', [SocialController::class, 'disconnect'])->name('disconnect');
-                });
+        Route::middleware(['auth'])->group(function () {
+            Route::prefix('social')->name('social.')->group(function () {
+                // Vista principal de cuentas sociales
+                Route::get('accounts', [SocialController::class, 'index'])->name('accounts');
+
+                // Conexión y autenticación
+                Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
+                
+                Route::get('{platform}/callback', [SocialController::class, 'callback'])->name('callback');
+
+                // Desconexión
+                Route::delete('disconnect/{platform}', [SocialController::class, 'disconnect'])->name('disconnect');
             });
+        });
 
         // Rutas de notificaciones
         Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
