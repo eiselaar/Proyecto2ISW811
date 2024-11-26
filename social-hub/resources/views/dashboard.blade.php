@@ -87,7 +87,18 @@
                                             <img src="{{ Storage::url('images/' . $platform . '.svg') }}"
                                                 alt="{{ $platform }}" class="w-6 h-6">
                                             @if (in_array($platform, $connectedPlatforms))
-                                                <span class="text-green-600">Connected</span>
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="text-green-600">Connected</span>
+                                                    <form action="{{ route('social.disconnect', $platform) }}"
+                                                        method="POST" class="inline-block">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="ml-2 text-red-600 hover:text-red-800 text-sm">
+                                                            Disconnect
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             @else
                                                 <a href="{{ route('social.connect', $platform) }}"
                                                     class="text-blue-600 hover:text-blue-800">
@@ -102,57 +113,54 @@
                     </div>
                 </div>
 
-             {{-- Quick Post --}}
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-    <div class="p-6">
-        <h2 class="text-lg font-semibold mb-4">Quick Post</h2>
-        @if(count($connectedPlatforms) > 0)
-            <form action="{{ route('posts.store') }}" method="POST">
-                @csrf
-                <div class="mb-4">
-                    <textarea name="content" 
-                            rows="3" 
-                            required
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            placeholder="What's on your mind?"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Post to:
-                    </label>
-                    <div class="space-x-4">
-                        @foreach($connectedPlatforms as $platform)
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" 
-                                       name="platforms[]" 
-                                       value="{{ $platform }}"
-                                       class="rounded border-gray-300">
-                                <span class="ml-2 text-sm text-gray-600">
-                                    {{ ucfirst($platform) }}
-                                </span>
-                            </label>
-                        @endforeach
+                {{-- Quick Post --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold mb-4">Quick Post</h2>
+                        @if (count($connectedPlatforms) > 0)
+                            <form action="{{ route('posts.store') }}" method="POST">
+                                @csrf
+                                <div class="mb-4">
+                                    <textarea name="content" rows="3" required
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        placeholder="What's on your mind?"></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Post to:
+                                    </label>
+                                    <div class="space-x-4">
+                                        @foreach ($connectedPlatforms as $platform)
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" name="platforms[]" value="{{ $platform }}"
+                                                    class="rounded border-gray-300">
+                                                <span class="ml-2 text-sm text-gray-600">
+                                                    {{ ucfirst($platform) }}
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit"
+                                        class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Post Now
+                                    </button>
+                                </div>
+                            </form>
+                        @else
+                            <div class="text-center py-4">
+                                <p class="text-gray-600">No social platforms connected.
+                                    <a href="{{ route('social.connect', 'linkedin') }}"
+                                        class="text-indigo-600 hover:text-indigo-500">
+                                        Connect a platform
+                                    </a>
+                                    to start posting.
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 </div>
-                <div class="flex justify-end">
-                    <button type="submit"
-                            class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Post Now
-                    </button>
-                </div>
-            </form>
-        @else
-            <div class="text-center py-4">
-                <p class="text-gray-600">No social platforms connected. 
-                    <a href="{{ route('social.connect', 'linkedin') }}" class="text-indigo-600 hover:text-indigo-500">
-                        Connect a platform
-                    </a> 
-                    to start posting.
-                </p>
-            </div>
-        @endif
-    </div>
-</div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
