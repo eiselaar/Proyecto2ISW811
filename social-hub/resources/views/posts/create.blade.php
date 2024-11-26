@@ -86,30 +86,4 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const content = document.getElementById('content');
-    const charCount = document.getElementById('charCount');
-    const scheduleType = document.getElementsByName('schedule_type');
-    const scheduledTimeContainer = document.getElementById('scheduled-time-container');
-
-    content.addEventListener('input', function() {
-        charCount.textContent = this.value.length;
-    });
-
-    scheduleType.forEach(input => {
-        input.addEventListener('change', function() {
-            scheduledTimeContainer.style.display = 
-                this.value === 'scheduled' ? 'block' : 'none';
-        });
-    });
-
-    // Inicializar estado
-    const selectedType = document.querySelector('input[name="schedule_type"]:checked');
-    if (selectedType && selectedType.value === 'scheduled') {
-        scheduledTimeContainer.style.display = 'block';
-    }
-});
-</script>
-@endpush
+@endsection

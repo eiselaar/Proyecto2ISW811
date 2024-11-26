@@ -10,6 +10,11 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
+
+         // Obtener las plataformas conectadas del usuario
+         $connectedPlatforms = $user->socialAccounts()
+         ->pluck('provider')
+         ->toArray();
         
         // Inicializar stats con valores predeterminados
         $stats = [

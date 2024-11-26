@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('provider_refresh_token')->nullable();
             $table->timestamp('token_expires_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['user_id', 'provider']);
         });
       
     }

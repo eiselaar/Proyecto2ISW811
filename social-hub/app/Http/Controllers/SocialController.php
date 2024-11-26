@@ -25,34 +25,55 @@ class SocialController extends Controller
                     ->setScopes(['openid', 'profile', 'email', 'w_member_social']) // Usa setScopes en lugar de scopes
                     ->redirect();
             }
-            
+
             return Socialite::driver($platform)->redirect();
         } catch (Exception $e) {
             Log::error('Social redirect error', [
                 'platform' => $platform,
                 'error' => $e->getMessage()
             ]);
-            
+
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }
     }
+
     public function callback(string $platform)
     {
         try {
-            $socialUser = Socialite::driver($platform)->user();
+            // Obtenemos solo el token response en lugar del usuario completo
+            $tokenResponse = Socialite::driver($platform)
+                ->stateless()
+                ->getAccessTokenResponse(request()->get('code'));
 
+            // Verificar autenticación
+            if (!auth()->check()) {
+                throw new Exception('User not authenticated');
+            }
+
+      
+         
+
+            // Preparamos los datos según tu modelo
+            $data = [
+                'user_id' => auth()->id(),
+                'provider' => $platform,
+                'provider_token' => $tokenResponse['access_token'],
+                'provider_refresh_token' => $tokenResponse['refresh_token'] ?? null,
+                'token_expires_at' => isset($tokenResponse['expires_in']) ?
+                    now()->addSeconds($tokenResponse['expires_in']) : null,
+            ];
+
+            // Intentar guardar usando updateOrCreate
             $account = SocialAccount::updateOrCreate(
                 [
-                    'user_id' => auth()->id(),
-                    'provider' => $platform,
-                    'provider_id' => $socialUser->getId(),
+                    'user_id' => $data['user_id'],
+                    'provider' => $data['provider']
                 ],
                 [
-                    'provider_token' => $socialUser->token,
-                    'provider_refresh_token' => $socialUser->refreshToken,
-                    'token_expires_at' => isset($socialUser->expiresIn) ?
-                        now()->addSeconds($socialUser->expiresIn) : null,
+                    'provider_token' => $data['provider_token'],
+                    'provider_refresh_token' => $data['provider_refresh_token'],
+                    'token_expires_at' => $data['token_expires_at'],
                 ]
             );
 
@@ -60,7 +81,12 @@ class SocialController extends Controller
                 ->with('status', ucfirst($platform) . ' account connected successfully.');
 
         } catch (Exception $e) {
-            Log::info($e->getMessage());
+            Log::error('Social Callback Error:', [
+                'message' => $e->getMessage(),
+                'user_id' => auth()->id() ?? 'no auth',
+                'platform' => $platform
+            ]);
+
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }

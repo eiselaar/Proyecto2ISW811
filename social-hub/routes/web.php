@@ -64,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
 
                 // Conexión y autenticación
                 Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
-                
+
                 Route::get('{platform}/callback', [SocialController::class, 'callback'])->name('callback');
 
                 // Desconexión
