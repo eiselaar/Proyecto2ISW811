@@ -87,18 +87,14 @@
                                             <img src="{{ Storage::url('images/' . $platform . '.svg') }}"
                                                 alt="{{ $platform }}" class="w-6 h-6">
                                             @if (in_array($platform, $connectedPlatforms))
-                                                <div class="flex items-center space-x-2">
-                                                    <span class="text-green-600">Connected</span>
-                                                    <form action="{{ route('social.disconnect', $platform) }}"
-                                                        method="POST" class="inline-block">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="ml-2 text-red-600 hover:text-red-800 text-sm">
-                                                            Disconnect
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                                <form action="{{ route('social.disconnect', $platform) }}" method="POST"
+                                                    class="inline-block">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                                                        Disconnect
+                                                    </button>
+                                                </form>
                                             @else
                                                 <a href="{{ route('social.connect', $platform) }}"
                                                     class="text-blue-600 hover:text-blue-800">
