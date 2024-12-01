@@ -7,8 +7,16 @@
             <div class="p-6">
                 <h2 class="text-2xl font-bold mb-4">Verify Two Factor Code</h2>
 
-                <form method="POST" action="{{ route('two-factor.verify') }}">
+                <form method="POST" action="{{ route('2fa.verify') }}">
                     @csrf
+
+                    {{-- Campos ocultos para la redirección de redes sociales --}}
+                    @if(session('social_callback_platform'))
+                        <input type="hidden" name="social_platform" value="{{ session('social_callback_platform') }}">
+                    @endif
+                    @if(session('social_callback_code'))
+                        <input type="hidden" name="social_code" value="{{ session('social_callback_code') }}">
+                    @endif
 
                     <div class="mb-4">
                         <label for="code" class="block text-sm font-medium text-gray-700">Authentication Code</label>
@@ -40,9 +48,16 @@
                     <p class="text-sm text-gray-600">
                         Don't have access to your authenticator app? Contact support for assistance.
                     </p>
+                    @if(session('social_callback_platform'))
+                        <p class="mt-2 text-sm text-gray-600">
+                            Verifying for {{ ucfirst(session('social_callback_platform')) }} connection.
+                            <a href="{{ route('dashboard') }}" class="text-indigo-600 hover:text-indigo-500">
+                                Cancel
+                            </a>
+                        </p>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection

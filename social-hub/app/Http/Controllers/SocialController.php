@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\SocialAccount;
 use Exception;
 use Illuminate\Http\Request;
@@ -20,9 +18,26 @@ class SocialController extends Controller
         }
 
         try {
+            // LinkedIn se mantiene exactamente igual
             if ($platform === 'linkedin') {
                 return Socialite::driver($platform)
-                    ->setScopes(['openid', 'profile', 'email', 'w_member_social']) // Usa setScopes en lugar de scopes
+                    ->setScopes(['openid', 'profile', 'email', 'w_member_social'])
+                    ->redirect();
+            }
+
+            // Solo verificamos 2FA para Mastodon
+            if ($platform === 'mastodon') {
+                // Verificar si el usuario tiene 2FA habilitado
+                if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
+                    session([
+                        'mastodon_connect_pending' => true,
+                        'intended_platform' => $platform
+                    ]);
+                    return redirect()->route('2fa.verify');
+                }
+
+                return Socialite::driver($platform)
+                    ->setScopes(['read', 'profile', 'write:statuses'])
                     ->redirect();
             }
 
@@ -41,20 +56,35 @@ class SocialController extends Controller
     public function callback(string $platform)
     {
         try {
-            // Obtenemos solo el token response en lugar del usuario completo
+            // Solo verificamos 2FA para Mastodon
+            if ($platform === 'mastodon') {
+                if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
+                    session([
+                        'mastodon_callback_pending' => true,
+                        'mastodon_callback_code' => request()->get('code'),
+                        'intended_platform' => $platform
+                    ]);
+                    
+                    return redirect()->route('2fa.verify');
+                }
+
+                // Limpiar variables de sesión específicas de Mastodon
+                session()->forget([
+                    '2fa_verified',
+                    'mastodon_callback_pending',
+                    'mastodon_callback_code',
+                    'intended_platform'
+                ]);
+            }
+
             $tokenResponse = Socialite::driver($platform)
                 ->stateless()
                 ->getAccessTokenResponse(request()->get('code'));
 
-            // Verificar autenticación
             if (!auth()->check()) {
                 throw new Exception('User not authenticated');
             }
 
-      
-         
-
-            // Preparamos los datos según tu modelo
             $data = [
                 'user_id' => auth()->id(),
                 'provider' => $platform,
@@ -64,7 +94,6 @@ class SocialController extends Controller
                     now()->addSeconds($tokenResponse['expires_in']) : null,
             ];
 
-            // Intentar guardar usando updateOrCreate
             $account = SocialAccount::updateOrCreate(
                 [
                     'user_id' => $data['user_id'],
@@ -90,6 +119,28 @@ class SocialController extends Controller
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to connect to ' . ucfirst($platform) . '. Please try again.');
         }
+    }
+
+    public function resume2FACallback()
+    {
+        if (session('mastodon_callback_pending')) {
+            $code = session('mastodon_callback_code');
+            $platform = 'mastodon';
+
+            if (!$code) {
+                return redirect()->route('dashboard')
+                    ->with('error', 'Invalid Mastodon connection attempt.');
+            }
+
+            return $this->callback($platform);
+        }
+
+        if (session('mastodon_connect_pending')) {
+            return $this->redirect('mastodon');
+        }
+
+        return redirect()->route('dashboard')
+            ->with('error', 'No pending social connection.');
     }
 
     public function disconnect(string $platform)

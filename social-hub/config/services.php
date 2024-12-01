@@ -21,12 +21,12 @@ return [
         'scope' => ['openid', 'profile', 'email', 'w_member_social'],
         'with' => []  // Esto asegura que no se agreguen scopes adicionales
     ],
-    'mastodon' => [
-        'domain' => env('MASTODON_DOMAIN'),
-        'client_id' => env('MASTODON_CLIENT_ID'),
-        'client_secret' => env('MASTODON_CLIENT_SECRET'),
-        'redirect' => env('MASTODON_REDIRECT_URI'),
-    ],
+'mastodon' => [
+    'client_id' => env('MASTODON_CLIENT_ID'),
+    'client_secret' => env('MASTODON_CLIENT_SECRET'),
+    'redirect' => env('MASTODON_REDIRECT_URI'),
+    'instance_url' => env('MASTODON_INSTANCE_URL', 'https://mastodon.social'),
+],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

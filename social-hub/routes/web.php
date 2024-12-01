@@ -12,7 +12,6 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 
 // Rutas públicas
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -42,6 +41,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('verify', [TwoFactorController::class, 'verify2fa'])->name('2fa.verify');
     });
 
+    // Rutas de redes sociales (fuera del middleware 2FA para permitir el flujo de autenticación)
+    Route::prefix('social')->name('social.')->group(function () {
+        Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
+        Route::get('{platform}/callback', [SocialController::class, 'callback'])->name('callback');
+        Route::delete('disconnect/{platform}', [SocialController::class, 'disconnect'])->name('disconnect');
+    });
+
     // Rutas protegidas por 2FA si está habilitado
     Route::middleware(['2fa'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -56,23 +62,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('schedules/{schedule}/toggle', [ScheduleController::class, 'toggle'])
             ->name('schedules.toggle');
 
+        // Vista principal de cuentas sociales (protegida por 2FA)
+        Route::get('social/accounts', [SocialController::class, 'index'])->name('social.accounts');
 
-        Route::middleware(['auth'])->group(function () {
-            Route::prefix('social')->name('social.')->group(function () {
-                // Vista principal de cuentas sociales
-                Route::get('accounts', [SocialController::class, 'index'])->name('accounts');
-
-                // Conexión y autenticación
-                Route::get('connect/{platform}', [SocialController::class, 'redirect'])->name('connect');
-
-                Route::get('{platform}/callback', [SocialController::class, 'callback'])->name('callback');
-
-                // Desconexión
-                Route::delete('disconnect/{platform}', [SocialController::class, 'disconnect'])->name('disconnect');
-            });
-        });
-
-        // Rutas de notificaciones
+        // Rutas de notificaciones * borrar  nose utiliza*
         Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
             ->name('notifications.mark-read');
     });

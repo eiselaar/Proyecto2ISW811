@@ -5,6 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
+use App\Services\Socialite\MastodonProvider;
+use Illuminate\Support\Arr;
+use Laravel\Socialite\Facades\Socialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,12 +25,31 @@ class AppServiceProvider extends ServiceProvider
         
         // Registrar componentes
         Blade::component('layouts.app', 'app-layout');
-        Blade::component('components.ui.application-logo', 'application-logo');  // Actualizado a la carpeta ui
+        Blade::component('components.ui.application-logo', 'application-logo');
         Blade::component('components.navigation-link', 'navigation-link');
         
-        // Registrar directivas Blade personalizadas
         Blade::directive('datetime', function ($expression) {
             return "<?php echo ($expression)->format('M d, Y H:i'); ?>";
+        });
+
+        Socialite::extend('mastodon', function ($app) {
+            $config = $app['config']['services.mastodon'] ?? [];
+            
+            // Asegurarnos de que tenemos un array con todas las claves necesarias
+            $config = array_merge([
+                'client_id' => null,
+                'client_secret' => null,
+                'redirect' => null,
+                'instance_url' => null,
+            ], is_array($config) ? $config : []);
+            
+            return new MastodonProvider(
+                $app['request'], 
+                $config['client_id'],
+                $config['client_secret'],
+                $config['redirect'],
+                $config['instance_url']
+            );
         });
     }
 }
