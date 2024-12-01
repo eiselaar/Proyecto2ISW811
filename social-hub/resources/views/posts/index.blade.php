@@ -12,7 +12,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
             @forelse($posts as $post)
-                <x-post-card :post="$post" />
+                <x-posts.post-card :post="$post">
+                    {{-- Si necesitas pasar contenido al slot --}}
+                </x-posts.post-card>
             @empty
                 <div class="bg-white shadow rounded-lg p-6">
                     <p class="text-gray-500 text-center">

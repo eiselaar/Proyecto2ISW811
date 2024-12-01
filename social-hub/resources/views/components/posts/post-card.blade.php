@@ -1,4 +1,6 @@
-<div class="bg-white rounded-lg shadow p-6">
+@props(['post'])
+
+<div class="bg-white rounded-lg shadow p-6 mb-4">
     <div class="flex justify-between items-start">
         <div class="flex-1">
             <p class="text-gray-900">{{ $post->content }}</p>
@@ -19,7 +21,9 @@
         </div>
     @endif
 
-    <div class="mt-4 flex justify-end space-x-2">
-        {{ $slot }}
-    </div>
+    @if($slot->isNotEmpty())
+        <div class="mt-4 flex justify-end space-x-2">
+            {{ $slot }}
+        </div>
+    @endif
 </div>
