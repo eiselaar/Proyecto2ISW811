@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use App\Services\Socialite\MastodonProvider;
+use App\Services\Socialite\RedditProvider;
 use Illuminate\Support\Arr;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo ($expression)->format('M d, Y H:i'); ?>";
         });
 
+        // Configuración de Mastodon
         Socialite::extend('mastodon', function ($app) {
             $config = $app['config']['services.mastodon'] ?? [];
 
@@ -53,6 +55,25 @@ class AppServiceProvider extends ServiceProvider
                 $config['client_secret'],
                 $config['redirect'],
                 $config['instance_url']
+            );
+        });
+
+        // Configuración de Reddit
+        Socialite::extend('reddit', function ($app) {
+            $config = $app['config']['services.reddit'] ?? [];
+
+            // Asegurarnos de que tenemos un array con todas las claves necesarias
+            $config = array_merge([
+                'client_id' => null,
+                'client_secret' => null,
+                'redirect' => null,
+            ], is_array($config) ? $config : []);
+
+            return new RedditProvider(
+                $app['request'],
+                $config['client_id'],
+                $config['client_secret'],
+                $config['redirect']
             );
         });
     }

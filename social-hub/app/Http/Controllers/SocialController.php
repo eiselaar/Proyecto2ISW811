@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\SocialAccount;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,16 +20,13 @@ class SocialController extends Controller
         }
 
         try {
-            // LinkedIn se mantiene exactamente igual
             if ($platform === 'linkedin') {
                 return Socialite::driver($platform)
                     ->setScopes(['openid', 'profile', 'email', 'w_member_social'])
                     ->redirect();
             }
 
-            // Solo verificamos 2FA para Mastodon
             if ($platform === 'mastodon') {
-                // Verificar si el usuario tiene 2FA habilitado
                 if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
                     session([
                         'mastodon_connect_pending' => true,
@@ -38,6 +37,13 @@ class SocialController extends Controller
 
                 return Socialite::driver($platform)
                     ->setScopes(['read', 'profile', 'write:statuses'])
+                    ->redirect();
+            }
+
+            if ($platform === 'reddit') {
+                return Socialite::driver($platform)
+                    ->setScopes(['identity', 'submit', 'edit', 'read'])
+                    ->with(['duration' => 'permanent'])
                     ->redirect();
             }
 
@@ -56,7 +62,6 @@ class SocialController extends Controller
     public function callback(string $platform)
     {
         try {
-            // Solo verificamos 2FA para Mastodon
             if ($platform === 'mastodon') {
                 if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
                     session([
@@ -68,7 +73,6 @@ class SocialController extends Controller
                     return redirect()->route('2fa.verify');
                 }
 
-                // Limpiar variables de sesión específicas de Mastodon
                 session()->forget([
                     '2fa_verified',
                     'mastodon_callback_pending',
@@ -77,22 +81,36 @@ class SocialController extends Controller
                 ]);
             }
 
-            $tokenResponse = Socialite::driver($platform)
-                ->stateless()
-                ->getAccessTokenResponse(request()->get('code'));
-
             if (!auth()->check()) {
                 throw new Exception('User not authenticated');
             }
 
-            $data = [
-                'user_id' => auth()->id(),
-                'provider' => $platform,
-                'provider_token' => $tokenResponse['access_token'],
-                'provider_refresh_token' => $tokenResponse['refresh_token'] ?? null,
-                'token_expires_at' => isset($tokenResponse['expires_in']) ?
-                    now()->addSeconds($tokenResponse['expires_in']) : null,
-            ];
+            if ($platform === 'reddit') {
+                $user = Socialite::driver($platform)->stateless()->user();
+                $data = [
+                    'user_id' => auth()->id(),
+                    'provider' => $platform,
+                    'provider_token' => $user->token,
+                    'provider_refresh_token' => $user->refreshToken,
+                    'provider_id' => $user->getId(),
+                    'token_expires_at' => now()->addMonth(),
+                ];
+            } else {
+                $tokenResponse = Socialite::driver($platform)
+                    ->stateless()
+                    ->getAccessTokenResponse(request()->get('code'));
+
+                $data = [
+                    'user_id' => auth()->id(),
+                    'provider' => $platform,
+                    'provider_token' => $tokenResponse['access_token'],
+                    'provider_refresh_token' => $tokenResponse['refresh_token'] ?? null,
+                    'token_expires_at' => isset($tokenResponse['expires_in']) ?
+                        now()->addSeconds($tokenResponse['expires_in']) : null,
+                ];
+            }
+
+            Log::info('Social Account Data:', $data); // Agregar logging para debug
 
             $account = SocialAccount::updateOrCreate(
                 [
@@ -102,6 +120,7 @@ class SocialController extends Controller
                 [
                     'provider_token' => $data['provider_token'],
                     'provider_refresh_token' => $data['provider_refresh_token'],
+                    'provider_id' => $data['provider_id'] ?? null,
                     'token_expires_at' => $data['token_expires_at'],
                 ]
             );
