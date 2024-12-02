@@ -30,6 +30,11 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function queuedPost()
+    {
+        return $this->hasOne(QueuedPost::class);
+    }
+
     public function scopeDraft($query)
     {
         return $query->where('status', 'draft');

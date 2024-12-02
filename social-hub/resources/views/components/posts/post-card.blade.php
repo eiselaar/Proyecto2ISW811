@@ -15,7 +15,7 @@
         <x-posts.post-status :status="$post->status" />
     </div>
     
-    @if($post->queuedPost)
+    @if($post->queuedPost && $post->queuedPost->scheduled_for)
         <div class="mt-4 text-sm text-gray-500">
             Scheduled for: {{ $post->queuedPost->scheduled_for->format('M d, Y H:i') }}
         </div>

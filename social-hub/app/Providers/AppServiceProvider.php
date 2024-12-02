@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('components.posts.post-card', 'post-card');
 
         Blade::component('components.posts.post-status', 'post-status');
+        
 
         Blade::directive('datetime', function ($expression) {
             return "<?php echo ($expression)->format('M d, Y H:i'); ?>";
