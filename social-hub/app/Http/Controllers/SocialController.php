@@ -62,6 +62,11 @@ class SocialController extends Controller
     public function callback(string $platform)
     {
         try {
+
+            if (!auth()->check()) {
+                throw new Exception('User not authenticated');
+            }
+
             if ($platform === 'mastodon') {
                 if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
                     session([
@@ -69,7 +74,7 @@ class SocialController extends Controller
                         'mastodon_callback_code' => request()->get('code'),
                         'intended_platform' => $platform
                     ]);
-                    
+
                     return redirect()->route('2fa.verify');
                 }
 
@@ -81,18 +86,15 @@ class SocialController extends Controller
                 ]);
             }
 
-            if (!auth()->check()) {
-                throw new Exception('User not authenticated');
-            }
-
             if ($platform === 'reddit') {
+                Log::info("Platform: $platform");
                 $user = Socialite::driver($platform)->stateless()->user();
+                Log::info("User Account Data");
                 $data = [
                     'user_id' => auth()->id(),
                     'provider' => $platform,
                     'provider_token' => $user->token,
                     'provider_refresh_token' => $user->refreshToken,
-                    'provider_id' => $user->getId(),
                     'token_expires_at' => now()->addMonth(),
                 ];
             } else {
@@ -120,7 +122,6 @@ class SocialController extends Controller
                 [
                     'provider_token' => $data['provider_token'],
                     'provider_refresh_token' => $data['provider_refresh_token'],
-                    'provider_id' => $data['provider_id'] ?? null,
                     'token_expires_at' => $data['token_expires_at'],
                 ]
             );
@@ -128,11 +129,10 @@ class SocialController extends Controller
             return redirect()->route('dashboard')
                 ->with('status', ucfirst($platform) . ' account connected successfully.');
 
-        } catch (Exception $e) {
-            Log::error('Social Callback Error:', [
-                'message' => $e->getMessage(),
-                'user_id' => auth()->id() ?? 'no auth',
-                'platform' => $platform
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            Log::error("Reddit API Error", [
+                'response' => $e->getResponse()->getBody()->getContents(),
+                'headers' => $e->getRequest()->getHeaders()
             ]);
 
             return redirect()->route('dashboard')
