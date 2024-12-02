@@ -3,7 +3,7 @@
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {{-- Stats Cards --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
@@ -74,7 +74,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 {{-- Connected Platforms --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
@@ -108,6 +108,7 @@
                         </div>
                     </div>
                 </div>
+
                 {{-- Quick Post --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
@@ -115,10 +116,8 @@
                         @if (count($connectedPlatforms) > 0)
                             <form action="{{ route('posts.store') }}" method="POST">
                                 @csrf
-                                {{-- Campo oculto para schedule_type --}}
                                 <input type="hidden" name="schedule_type" value="now">
 
-                                {{-- Mensajes de error --}}
                                 @if ($errors->any())
                                     <div
                                         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -130,7 +129,6 @@
                                     </div>
                                 @endif
 
-                                {{-- Campo de contenido --}}
                                 <div class="mb-4">
                                     <textarea name="content" rows="3" required
                                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 @error('content') border-red-500 @enderror"
@@ -140,7 +138,6 @@
                                     @enderror
                                 </div>
 
-                                {{-- Selección de plataformas --}}
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Post to: <span class="text-red-500">*</span>
@@ -162,7 +159,6 @@
                                     @enderror
                                 </div>
 
-                                {{-- Botón de envío --}}
                                 <div class="flex justify-end">
                                     <button type="submit"
                                         class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -183,73 +179,73 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                    {{-- Recent Posts --}}
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <h2 class="text-lg font-semibold mb-4">Recent Posts</h2>
-                            <div class="space-y-4">
-                                @forelse($recentPosts as $post)
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <p class="text-sm text-gray-500">
-                                                Posted {{ $post->created_at->diffForHumans() }}
-                                            </p>
-                                            <span
-                                                class="px-2 py-1 text-xs rounded-full {{ match ($post->status) {
-                                                    'published' => 'bg-green-100 text-green-800',
-                                                    'scheduled' => 'bg-blue-100 text-blue-800',
-                                                    'queued' => 'bg-yellow-100 text-yellow-800',
-                                                    default => 'bg-gray-100 text-gray-800',
-                                                } }}">
-                                                {{ ucfirst($post->status) }}
-                                            </span>
-                                        </div>
-                                        <p class="text-gray-700">{{ $post->content }}</p>
-                                        <div class="mt-2 flex gap-2">
-                                            @foreach ($post->platforms as $platform)
-                                                <img src="{{ asset('images/' . $platform . '.svg') }}"
-                                                    alt="{{ $platform }}" class="w-5 h-5">
-                                            @endforeach
-                                        </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                {{-- Recent Posts --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold mb-4">Recent Posts</h2>
+                        <div class="space-y-4">
+                            @forelse($recentPosts as $post)
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <p class="text-sm text-gray-500">
+                                            Posted {{ $post->created_at->diffForHumans() }}
+                                        </p>
+                                        <span
+                                            class="px-2 py-1 text-xs rounded-full {{ match ($post->status) {
+                                                'published' => 'bg-green-100 text-green-800',
+                                                'scheduled' => 'bg-blue-100 text-blue-800',
+                                                'queued' => 'bg-yellow-100 text-yellow-800',
+                                                default => 'bg-gray-100 text-gray-800',
+                                            } }}">
+                                            {{ ucfirst($post->status) }}
+                                        </span>
                                     </div>
-                                @empty
-                                    <p class="text-gray-500">No recent posts.</p>
-                                @endforelse
-                            </div>
+                                    <p class="text-gray-700">{{ $post->content }}</p>
+                                    <div class="mt-2 flex gap-2">
+                                        @foreach ($post->platforms as $platform)
+                                            <img src="{{ asset('images/' . $platform . '.svg') }}"
+                                                alt="{{ $platform }}" class="w-5 h-5">
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-gray-500">No recent posts.</p>
+                            @endforelse
                         </div>
                     </div>
+                </div>
 
-                    {{-- Upcoming Posts --}}
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <h2 class="text-lg font-semibold mb-4">Upcoming Posts</h2>
-                            <div class="space-y-4">
-                                @forelse($upcomingPosts as $post)
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div>
-                                                <p class="text-sm text-gray-500">
-                                                    Scheduled for {{ $post->scheduled_at->format('M j, Y g:i A') }}
-                                                </p>
-                                            </div>
-                                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                                                Scheduled
-                                            </span>
+                {{-- Upcoming Posts --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold mb-4">Upcoming Posts</h2>
+                        <div class="space-y-4">
+                            @forelse($upcomingPosts as $post)
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p class="text-sm text-gray-500">
+                                                Scheduled for {{ $post->scheduled_at->format('M j, Y g:i A') }}
+                                            </p>
                                         </div>
-                                        <p class="text-gray-700">{{ $post->content }}</p>
-                                        <div class="mt-2 flex gap-2">
-                                            @foreach ($post->platforms as $platform)
-                                                <img src="{{ Storage::url('images/' . $platform . '.svg') }}"
-                                                    alt="{{ $platform }}" class="w-6 h-6">
-                                            @endforeach
-                                        </div>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                            Scheduled
+                                        </span>
                                     </div>
-                                @empty
-                                    <p class="text-gray-500">No upcoming posts scheduled.</p>
-                                @endforelse
-                            </div>
+                                    <p class="text-gray-700">{{ $post->content }}</p>
+                                    <div class="mt-2 flex gap-2">
+                                        @foreach ($post->platforms as $platform)
+                                            <img src="{{ Storage::url('images/' . $platform . '.svg') }}"
+                                                alt="{{ $platform }}" class="w-6 h-6">
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-gray-500">No upcoming posts scheduled.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>

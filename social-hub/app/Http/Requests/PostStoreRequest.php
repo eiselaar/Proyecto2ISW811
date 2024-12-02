@@ -16,7 +16,7 @@ class PostStoreRequest extends FormRequest
         return [
             'content' => ['required', 'string', 'max:280'],
             'platforms' => ['required', 'array', 'min:1'],
-            'platforms.*' => ['required', 'string', 'in:twitter,reddit,mastodon'],
+            'platforms.*' => ['required', 'string', 'in:linkedin,reddit,mastodon'],
             'schedule_type' => ['required', 'string', 'in:now,queue,scheduled'],
             'scheduled_for' => ['required_if:schedule_type,scheduled', 'nullable', 'date', 'after:now'],
             'media' => ['nullable', 'array', 'max:4'],
