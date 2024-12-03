@@ -206,8 +206,11 @@
                                     <p class="text-gray-700">{{ $post->content }}</p>
                                     <div class="mt-2 flex gap-2">
                                         @foreach ($post->platforms as $platform)
-                                            <img src="{{ asset('images/' . $platform . '.svg') }}"
-                                                alt="{{ $platform }}" class="w-5 h-5">
+                                        <img 
+                                        src="{{ asset('storage/images/' . $platform . '.svg') }}"
+                                        alt="{{ $platform }}" 
+                                        class="w-4 h-4 mr-9"
+                                    >
                                         @endforeach
                                     </div>
                                 </div>

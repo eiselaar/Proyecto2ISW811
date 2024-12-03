@@ -6,9 +6,14 @@
             <p class="text-gray-900">{{ $post->content }}</p>
             <div class="mt-2 flex flex-wrap gap-2">
                 @foreach($post->platforms as $platform)
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {{ ucfirst($platform) }}
-                    </span>
+                <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <img 
+                        src="{{ asset('storage/images/' . $platform . '.svg') }}"
+                        alt="{{ $platform }}" 
+                        class="w-4 h-4 mr-9"
+                    >
+                    {{ ucfirst($platform) }}
+                </div>
                 @endforeach
             </div>
         </div>
