@@ -89,12 +89,11 @@ class PostController extends Controller
                 'has_scheduled_for' => isset($request->scheduled_for)
             ]);
 
-            // Create post - Cambiamos 'pending' por 'draft' que sí está en el enum
             $post = Post::create([
                 'user_id' => auth()->id(),
                 'content' => $request->content,
                 'platforms' => $request->platforms,
-                'status' => $request->schedule_type === 'now' ? 'draft' : 'queued', // Cambiado 'pending' por 'draft'
+                'status' => $request->schedule_type === 'now' ? 'draft' : 'queued',
             ]);
 
             $this->logInfo('Post created successfully', [
@@ -104,12 +103,19 @@ class PostController extends Controller
 
             if ($request->schedule_type === 'now') {
                 try {
+                    // Despachar el job de publicación
+                    Log::info("Dispacher");
+                    Log::info($post);
+                    PublishPost::dispatch($post);
+                    Log::info("Then Dispacher");
+
                     auth()->user()->notify(new PostPublishedNotification($post));
-                    $this->logInfo('Immediate publication notification sent', [
+
+                    $this->logInfo('Post queued for immediate publication', [
                         'post_id' => $post->id
                     ]);
                 } catch (Exception $e) {
-                    $this->logError('Failed to send immediate publication notification', $e, [
+                    $this->logError('Failed to queue post for publication', $e, [
                         'post_id' => $post->id
                     ]);
                 }
