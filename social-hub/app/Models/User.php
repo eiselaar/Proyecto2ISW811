@@ -7,46 +7,49 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+// Modelo que representa a los usuarios del sistema
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+   // Traits para funcionalidades adicionales
+   use HasApiTokens, Notifiable;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'two_factor_secret',
-        'two_factor_enabled',
-    ];
+   // Campos que se pueden asignar masivamente
+   protected $fillable = [
+       'name',                  // Nombre del usuario
+       'email',                 // Email (usado para login)
+       'password',              // Contraseña encriptada
+       'two_factor_secret',     // Secreto para 2FA
+       'two_factor_enabled',    // Si tiene 2FA activado
+   ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-        'two_factor_secret',
-    ];
+   // Campos que no se deben mostrar en las respuestas
+   protected $hidden = [
+       'password',              // Oculta la contraseña
+       'remember_token',        // Token de "recordarme"
+       'two_factor_secret',     // Oculta el secreto 2FA
+   ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'two_factor_enabled' => 'boolean',
-    ];
+   // Define el casteo de tipos para ciertos campos
+   protected $casts = [
+       'email_verified_at' => 'datetime',    // Fecha de verificación de email
+       'two_factor_enabled' => 'boolean',    // Estado de 2FA
+   ];
 
-    public function posts(): HasMany
-    {
-        return $this->hasMany(Post::class);
-    }
+   // Relación con los posts del usuario
+   public function posts(): HasMany
+   {
+       return $this->hasMany(Post::class);
+   }
 
-    public function socialAccounts(): HasMany
-    {
-        return $this->hasMany(SocialAccount::class);
-    }
+   // Relación con las cuentas sociales del usuario
+   public function socialAccounts(): HasMany
+   {
+       return $this->hasMany(SocialAccount::class);
+   }
 
-    
-    public function schedules(): HasMany
-    {
-        return $this->hasMany(Schedule::class);
-    }
-
-  
-    
+   // Relación con los horarios programados del usuario
+   public function schedules(): HasMany
+   {
+       return $this->hasMany(Schedule::class);
+   }
 }
-
