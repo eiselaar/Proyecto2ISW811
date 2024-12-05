@@ -200,5 +200,54 @@ class PublishPost implements ShouldQueue
     }
 }
 
+protected function publishToReddit()
+{
+    try {
+        $socialAccount = $this->post->user->socialAccounts()
+            ->where('provider', 'reddit')
+            ->first();
+
+        Log::info('Reddit account details', [
+            'found_account' => !!$socialAccount,
+            'has_token' => !empty($socialAccount?->provider_token),
+            'token_value' => $socialAccount?->provider_token,
+            'token_expires_at' => $socialAccount?->token_expires_at
+        ]);
+
+        if (!$socialAccount) {
+            throw new Exception('Reddit account not found');
+        }
+
+        if (empty($socialAccount->provider_token)) {
+            throw new Exception('Reddit token is empty');
+        }
+
+        $client = new Client();
+
+        $response = $client->post('https://oauth.reddit.com/api/submit', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $socialAccount->provider_token,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'User-Agent' => 'SocialHub/1.0'
+            ],
+            'form_params' => [
+                'sr' => 'test', // subreddit donde publicar
+                'kind' => 'self',
+                'title' => substr($this->post->content, 0, 300),
+                'text' => $this->post->content
+            ]
+        ]);
+
+        return true;
+    } catch (\GuzzleHttp\Exception\ClientException $e) {
+        Log::error('Reddit API Error', [
+            'response_status' => $e->getResponse()->getStatusCode(),
+            'response_body' => $e->getResponse()->getBody()->getContents(),
+            'token_used' => $socialAccount?->provider_token ?? 'no token'
+        ]);
+        throw $e;
+    }
+}
+
 
 }

@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Jobs\PublishPost;
+use App\Models\Post;
 use App\Models\QueuedPost;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class ProcessScheduledPosts extends Command
 {
@@ -31,7 +33,7 @@ class ProcessScheduledPosts extends Command
 
         // Procesar posts en cola general
         $queuedPosts = Post::where('status', 'queued')
-            ->whereHas('queuedPost', function($query) {
+            ->whereHas('queuedPost', function ($query) {
                 $query->where('is_scheduled', false);
             })
             ->get();
@@ -44,6 +46,6 @@ class ProcessScheduledPosts extends Command
             PublishPost::dispatch($post);
             $post->queuedPost->delete();
         }
-    
+
     }
 }
