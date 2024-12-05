@@ -25,13 +25,24 @@ class ScheduleController extends Controller
         return redirect()->route('schedules.index')
             ->with('success', 'Schedule created successfully.');
     }
+
+    public function update(Request $request, Schedule $schedule)
+    {
+        $validated = $request->validate([
+            'time' => 'required|date_format:H:i',
+            'day_of_week' => 'required|integer|between:0,6',
+        ]);
+
+        $schedule->update($validated);
+
+        return redirect()->back()->with('success', 'Horario actualizado correctamente');
+    }
+
+    // Método para eliminar un horario
     public function destroy(Schedule $schedule)
     {
-        $this->authorize('delete', $schedule);
-
         $schedule->delete();
-
-        return redirect()->route('schedules.index')
-            ->with('success', 'Schedule deleted successfully.');
+        return redirect()->back()->with('success', 'Horario eliminado correctamente');
     }
+    
 }
