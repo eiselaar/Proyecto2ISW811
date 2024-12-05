@@ -99,7 +99,11 @@ class PostController extends Controller
                 'user_id' => auth()->id(),
                 'content' => $request->content,
                 'platforms' => $request->platforms,
-                'status' => $request->schedule_type === 'now' ? 'draft' : 'queued',
+                'status' => match($request->schedule_type) {
+                    'now' => 'draft',
+                    'scheduled' => 'scheduled',
+                    default => 'queued'
+                },
             ]);
 
             $this->logInfo('Post created successfully', [
