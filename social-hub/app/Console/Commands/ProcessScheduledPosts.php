@@ -45,9 +45,17 @@ class ProcessScheduledPosts extends Command
         // Busca todos los posts que:
         // - Tienen estado 'queued'
         // - Están en la cola pero NO programados (is_scheduled = false)
+        $currentTime = now();
+        $dayOfWeek = $currentTime->dayOfWeek;
+        $currentHour = $currentTime->format('H:i');
+
         $queuedPosts = Post::where('status', 'queued')
             ->whereHas('queuedPost', function ($query) {
                 $query->where('is_scheduled', false);
+            })
+            ->whereHas('user.schedules', function ($query) use ($dayOfWeek, $currentHour) {
+                $query->where('day_of_week', $dayOfWeek)
+                    ->where('time', $currentHour);
             })
             ->get();
 
