@@ -3,46 +3,56 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Http\Requests\ScheduleStoreRequest;
+use App\Http\Requests\ScheduleStoreRequest; 
 use Illuminate\Http\Request;
 
-class ScheduleController extends Controller
+// Controlador para manejar los horarios de publicación
+class ScheduleController extends Controller 
 {
-    public function index()
-    {
-        $schedules = auth()->user()->schedules()
-            ->orderBy('day_of_week')
-            ->orderBy('time')
-            ->get();
+   // Muestra la lista de horarios del usuario
+   public function index()
+   {
+       // Obtiene los horarios ordenados por día y hora
+       $schedules = auth()->user()->schedules()
+           ->orderBy('day_of_week') // Primero ordena por día de la semana
+           ->orderBy('time')        // Luego ordena por hora
+           ->get();
 
-        return view('schedules.index', compact('schedules'));
-    }
+       return view('schedules.index', compact('schedules'));
+   }
 
-    public function store(ScheduleStoreRequest $request)
-    {
-        auth()->user()->schedules()->create($request->validated());
+   // Almacena un nuevo horario
+   public function store(ScheduleStoreRequest $request)
+   {
+       // Crea un nuevo horario para el usuario autenticado 
+       // usando los datos validados por ScheduleStoreRequest
+       auth()->user()->schedules()->create($request->validated());
 
-        return redirect()->route('schedules.index')
-            ->with('success', 'Schedule created successfully.');
-    }
+       return redirect()->route('schedules.index')
+           ->with('success', 'Schedule created successfully.');
+   }
 
-    public function update(Request $request, Schedule $schedule)
-    {
-        $validated = $request->validate([
-            'time' => 'required|date_format:H:i',
-            'day_of_week' => 'required|integer|between:0,6',
-        ]);
+   // Actualiza un horario existente
+   public function update(Request $request, Schedule $schedule)
+   {
+       // Valida los datos de entrada
+       $validated = $request->validate([
+           'time' => 'required|date_format:H:i',        // Formato hora:minutos
+           'day_of_week' => 'required|integer|between:0,6', // Día de la semana (0=domingo a 6=sábado)
+       ]);
 
-        $schedule->update($validated);
+       // Actualiza el horario con los datos validados
+       $schedule->update($validated);
 
-        return redirect()->back()->with('success', 'Horario actualizado correctamente');
-    }
+       return redirect()->back()->with('success', 'Horario actualizado correctamente');
+   }
 
-    // Método para eliminar un horario
-    public function destroy(Schedule $schedule)
-    {
-        $schedule->delete();
-        return redirect()->back()->with('success', 'Horario eliminado correctamente');
-    }
-    
+   // Elimina un horario
+   public function destroy(Schedule $schedule)
+   {
+       // Elimina el horario de la base de datos
+       $schedule->delete();
+       
+       return redirect()->back()->with('success', 'Horario eliminado correctamente');
+   }
 }

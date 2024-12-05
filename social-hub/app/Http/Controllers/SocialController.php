@@ -8,25 +8,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
+// Controlador que maneja la conexión con redes sociales
 class SocialController extends Controller
 {
+    // Plataformas sociales permitidas
     protected $allowedPlatforms = ['linkedin', 'mastodon', 'reddit'];
 
+    // Método para redirigir al usuario a la plataforma social para autenticación
     public function redirect(string $platform)
     {
+        // Verifica si la plataforma está permitida
         if (!in_array($platform, $this->allowedPlatforms)) {
             return redirect()->route('dashboard')
                 ->with('error', 'Platform not supported.');
         }
 
         try {
+            // Configuración específica para LinkedIn
             if ($platform === 'linkedin') {
                 return Socialite::driver($platform)
                     ->setScopes(['openid', 'profile', 'email', 'w_member_social'])
                     ->redirect();
             }
 
+            // Configuración específica para Mastodon
             if ($platform === 'mastodon') {
+                // Verifica autenticación de dos factores si está habilitada
                 if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
                     session([
                         'mastodon_connect_pending' => true,
@@ -40,6 +47,7 @@ class SocialController extends Controller
                     ->redirect();
             }
 
+            // Configuración específica para Reddit
             if ($platform === 'reddit') {
                 return Socialite::driver($platform)
                     ->setScopes(['identity', 'submit', 'edit', 'read'])
@@ -59,14 +67,16 @@ class SocialController extends Controller
         }
     }
 
+    // Método que maneja el callback después de la autenticación
     public function callback(string $platform)
     {
         try {
-
+            // Verifica que el usuario esté autenticado
             if (!auth()->check()) {
                 throw new Exception('User not authenticated');
             }
 
+            // Manejo especial para Mastodon con 2FA
             if ($platform === 'mastodon') {
                 if (auth()->user()->two_factor_enabled && !session('2fa_verified')) {
                     session([
@@ -86,6 +96,7 @@ class SocialController extends Controller
                 ]);
             }
 
+            // Obtención de datos específica para Reddit
             if ($platform === 'reddit') {
                 Log::info("Platform: $platform");
                 $user = Socialite::driver($platform)->stateless()->user();
@@ -98,6 +109,7 @@ class SocialController extends Controller
                     'token_expires_at' => now()->addMonth(),
                 ];
             } else {
+                // Obtención de tokens para otras plataformas
                 $tokenResponse = Socialite::driver($platform)
                     ->stateless()
                     ->getAccessTokenResponse(request()->get('code'));
@@ -112,8 +124,9 @@ class SocialController extends Controller
                 ];
             }
 
-            Log::info('Social Account Data:', $data); // Agregar logging para debug
+            Log::info('Social Account Data:', $data);
 
+            // Actualiza o crea la cuenta social
             $account = SocialAccount::updateOrCreate(
                 [
                     'user_id' => $data['user_id'],
@@ -140,8 +153,10 @@ class SocialController extends Controller
         }
     }
 
+    // Método para reanudar el proceso después de la verificación 2FA
     public function resume2FACallback()
     {
+        // Continúa el callback pendiente de Mastodon
         if (session('mastodon_callback_pending')) {
             $code = session('mastodon_callback_code');
             $platform = 'mastodon';
@@ -154,6 +169,7 @@ class SocialController extends Controller
             return $this->callback($platform);
         }
 
+        // Continúa la conexión pendiente con Mastodon
         if (session('mastodon_connect_pending')) {
             return $this->redirect('mastodon');
         }
@@ -162,6 +178,7 @@ class SocialController extends Controller
             ->with('error', 'No pending social connection.');
     }
 
+    // Método para desconectar una cuenta social
     public function disconnect(string $platform)
     {
         try {

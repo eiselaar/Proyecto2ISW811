@@ -11,10 +11,12 @@ use App\Notifications\PostPublishedNotification;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+// Controlador que maneja las operaciones CRUD de posts
 class PostController extends Controller
 {
-    private function logError($message, $exception = null, $context = [])
-    {
+    // Método auxiliar para registrar errores de manera consistente
+    private function logError($message, $exception = null, $context = []) {
+        // Combina el contexto proporcionado con información del usuario y detalles de la excepción
         $logContext = array_merge([
             'user_id' => auth()->id(),
             'exception' => $exception ? [
@@ -28,8 +30,9 @@ class PostController extends Controller
         Log::error($message, $logContext);
     }
 
-    private function logInfo($message, $context = [])
-    {
+    // Método auxiliar para registrar información de manera consistente
+    private function logInfo($message, $context = []) {
+        // Combina el contexto proporcionado con información del usuario y timestamp
         $logContext = array_merge([
             'user_id' => auth()->id(),
             'timestamp' => now()->toDateTimeString()
@@ -38,11 +41,12 @@ class PostController extends Controller
         Log::info($message, $logContext);
     }
 
-    public function index()
-    {
+    // Muestra la lista de posts del usuario
+    public function index() {
         try {
             $this->logInfo('Fetching posts for user');
 
+            // Obtiene los posts paginados del usuario autenticado
             $posts = auth()->user()->posts()
                 ->latest()
                 ->paginate(10);
@@ -59,11 +63,12 @@ class PostController extends Controller
         }
     }
 
-    public function create()
-    {
+    // Muestra el formulario para crear un nuevo post
+    public function create() {
         try {
             $this->logInfo('Fetching connected platforms');
 
+            // Obtiene las plataformas sociales conectadas del usuario
             $connectedPlatforms = auth()->user()->socialAccounts()
                 ->pluck('provider')
                 ->unique();
@@ -79,8 +84,8 @@ class PostController extends Controller
         }
     }
 
-    public function store(PostStoreRequest $request)
-    {
+    // Almacena un nuevo post
+    public function store(PostStoreRequest $request) {
         try {
             $this->logInfo('Starting post creation process', [
                 'content_length' => strlen($request->content),
@@ -89,6 +94,7 @@ class PostController extends Controller
                 'has_scheduled_for' => isset($request->scheduled_for)
             ]);
 
+            // Crea el post en la base de datos
             $post = Post::create([
                 'user_id' => auth()->id(),
                 'content' => $request->content,
@@ -101,14 +107,13 @@ class PostController extends Controller
                 'status' => $post->status
             ]);
 
+            // Si el post debe publicarse inmediatamente
             if ($request->schedule_type === 'now') {
                 try {
-                    // Despachar el job de publicación
-                    Log::info("Dispacher");
-                    Log::info($post);
+                    // Envía el post al job de publicación
                     PublishPost::dispatch($post);
-                    Log::info("Then Dispacher");
-
+                    
+                    // Notifica al usuario
                     auth()->user()->notify(new PostPublishedNotification($post));
 
                     $this->logInfo('Post queued for immediate publication', [
@@ -119,8 +124,11 @@ class PostController extends Controller
                         'post_id' => $post->id
                     ]);
                 }
-            } else {
+            } 
+            // Si el post debe programarse
+            else {
                 try {
+                    // Crea un registro en la cola de publicación
                     $queuedPost = $post->queuedPost()->create([
                         'scheduled_for' => $request->scheduled_for,
                         'is_scheduled' => $request->schedule_type === 'scheduled'
