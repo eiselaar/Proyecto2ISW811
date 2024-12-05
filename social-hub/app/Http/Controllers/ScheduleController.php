@@ -25,12 +25,12 @@ class ScheduleController extends Controller
         return redirect()->route('schedules.index')
             ->with('success', 'Schedule created successfully.');
     }
-
     public function destroy(Schedule $schedule)
     {
         $this->authorize('delete', $schedule);
-        $schedule->delete();
         
+        $schedule->delete();
+
         return redirect()->route('schedules.index')
             ->with('success', 'Schedule deleted successfully.');
     }

@@ -24,31 +24,59 @@ class PublishPost implements ShouldQueue
         Log::info("Construct");
         Log::info($post);
     }
-
     public function handle()
     {
-        try {
-
-            foreach ($this->post->platforms as $platform) {
-                match ($platform) {
-                    'linkedin' => $this->publishToLinkedIn(),
-                    default => null
-                };
-            }
-
-            $this->post->update([
-                'status' => 'published',
-                'published_at' => now()
-            ]);
-
-        } catch (Exception $e) {
-            Log::info("catch handel");
-            Log::info($e);
-            $this->post->update(['status' => 'failed']);
-            throw $e;
-        }
+       try {
+           Log::info('Starting to process queued post', [
+               'post_id' => $this->post->id,
+               'platforms' => $this->post->platforms,
+               'status' => $this->post->status
+           ]);
+    
+           foreach ($this->post->platforms as $platform) {
+               Log::info('Processing platform', [
+                   'platform' => $platform,
+                   'post_id' => $this->post->id
+               ]);
+    
+               match ($platform) {
+                   'linkedin' => $this->publishToLinkedIn(),
+                   'mastodon' => $this->publishToMastodon(),
+                   'reddit' => $this->publishToReddit(),
+                   default => null
+               };
+    
+               Log::info('Platform processed successfully', [
+                   'platform' => $platform,
+                   'post_id' => $this->post->id
+               ]);
+           }
+    
+           Log::info('Updating post status to published', [
+               'post_id' => $this->post->id
+           ]);
+    
+           $this->post->update([
+               'status' => 'published',
+               'published_at' => now()
+           ]);
+    
+           Log::info('Post processed and published successfully', [
+               'post_id' => $this->post->id,
+               'final_status' => 'published'
+           ]);
+    
+       } catch (Exception $e) {
+           Log::error('Failed to process post', [
+               'post_id' => $this->post->id,
+               'error_message' => $e->getMessage(),
+               'error_trace' => $e->getTraceAsString()
+           ]);
+    
+           $this->post->update(['status' => 'failed']);
+           throw $e;
+       }
     }
-
     protected function publishToLinkedIn()
     {
         try {
@@ -124,4 +152,53 @@ class PublishPost implements ShouldQueue
             throw $e;
         }
     }
+
+
+    protected function publishToMastodon()
+{
+    try {
+        $socialAccount = $this->post->user->socialAccounts()
+            ->where('provider', 'mastodon')
+            ->first();
+
+        Log::info('Mastodon account details', [
+            'found_account' => !!$socialAccount,
+            'has_token' => !empty($socialAccount?->provider_token),
+            'token_value' => $socialAccount?->provider_token,
+            'token_expires_at' => $socialAccount?->token_expires_at
+        ]);
+
+        if (!$socialAccount) {
+            throw new Exception('Mastodon account not found');
+        }
+
+        if (empty($socialAccount->provider_token)) {
+            throw new Exception('Mastodon token is empty');
+        }
+
+        $client = new Client();
+        
+        $response = $client->post('https://mastodon.social/api/v1/statuses', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $socialAccount->provider_token,
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'status' => $this->post->content,
+                'visibility' => 'public'
+            ]
+        ]);
+
+        return true;
+    } catch (\GuzzleHttp\Exception\ClientException $e) {
+        Log::error('Mastodon API Error', [
+            'response_status' => $e->getResponse()->getStatusCode(),
+            'response_body' => $e->getResponse()->getBody()->getContents(),
+            'token_used' => $socialAccount?->provider_token ?? 'no token'
+        ]);
+        throw $e;
+    }
+}
+
+
 }

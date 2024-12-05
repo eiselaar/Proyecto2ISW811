@@ -13,42 +13,37 @@ class ProcessScheduledPosts extends Command
 
     public function handle()
     {
-        // Procesar posts programados para una hora específica
+        // Procesar posts programados para hora específica
         $scheduledPosts = QueuedPost::with('post')
             ->where('is_scheduled', true)
             ->where('scheduled_for', '<=', now())
             ->get();
 
         foreach ($scheduledPosts as $queuedPost) {
-            if ($queuedPost->post->status === 'queued') {
-                PublishPost::dispatch($queuedPost->post);
-                $queuedPost->delete();
-            }
+            Log::info('Processing scheduled post', [
+                'post_id' => $queuedPost->post_id,
+                'scheduled_for' => $queuedPost->scheduled_for
+            ]);
+
+            PublishPost::dispatch($queuedPost->post);
+            $queuedPost->delete();
         }
 
-        // Procesar posts en cola según horarios
-        $now = now();
-        $dayOfWeek = $now->dayOfWeek;
-        $currentTime = $now->format('H:i:00');
-
-        $queuedPosts = QueuedPost::with(['post.user.schedules'])
-            ->where('is_scheduled', false)
-            ->whereHas('post', function ($query) {
-                $query->where('status', 'queued');
+        // Procesar posts en cola general
+        $queuedPosts = Post::where('status', 'queued')
+            ->whereHas('queuedPost', function($query) {
+                $query->where('is_scheduled', false);
             })
             ->get();
 
-        foreach ($queuedPosts as $queuedPost) {
-            $hasSchedule = $queuedPost->post->user->schedules()
-                ->where('day_of_week', $dayOfWeek)
-                ->where('time', $currentTime)
-                ->where('is_active', true)
-                ->exists();
+        foreach ($queuedPosts as $post) {
+            Log::info('Processing queued post', [
+                'post_id' => $post->id
+            ]);
 
-            if ($hasSchedule) {
-                PublishPost::dispatch($queuedPost->post);
-                $queuedPost->delete();
-            }
+            PublishPost::dispatch($post);
+            $post->queuedPost->delete();
         }
+    
     }
 }
