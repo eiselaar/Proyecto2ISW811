@@ -7,21 +7,33 @@ use Laravel\Socialite\Two\ProviderInterface;
 use Laravel\Socialite\Two\User;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Proveedor de autenticación OAuth2 para Reddit
+ */
 class RedditProvider extends AbstractProvider implements ProviderInterface
 {
     protected $scopes = ['identity', 'submit', 'edit', 'read'];
     protected $scopeSeparator = ' ';
 
+    /**
+     * URL de autorización OAuth
+     */
     protected function getAuthUrl($state)
     {
         return $this->buildAuthUrlFromBase('https://www.reddit.com/api/v1/authorize', $state);
     }
 
+    /**
+     * URL para obtener el token
+     */
     protected function getTokenUrl()
     {
         return 'https://www.reddit.com/api/v1/access_token';
     }
 
+    /**
+     * Obtiene datos del usuario mediante token
+     */
     protected function getUserByToken($token)
     {
         try {
@@ -32,9 +44,7 @@ class RedditProvider extends AbstractProvider implements ProviderInterface
                 ],
             ]);
 
-            $userData = json_decode($response->getBody(), true);
-
-            return $userData;
+            return json_decode($response->getBody(), true);
         } catch (\Exception $e) {
             Log::error('Reddit User Data Request Failed', [
                 'error' => $e->getMessage(),
@@ -44,6 +54,9 @@ class RedditProvider extends AbstractProvider implements ProviderInterface
         }
     }
 
+    /**
+     * Mapea respuesta API a objeto User
+     */
     protected function mapUserToObject(array $user)
     {
         return (new User())->setRaw($user)->map([
@@ -55,6 +68,9 @@ class RedditProvider extends AbstractProvider implements ProviderInterface
         ]);
     }
 
+    /**
+     * Campos adicionales para token
+     */
     protected function getTokenFields($code)
     {
         return array_merge(parent::getTokenFields($code), [
@@ -63,6 +79,9 @@ class RedditProvider extends AbstractProvider implements ProviderInterface
         ]);
     }
 
+    /**
+     * Obtiene respuesta del token de acceso con logging
+     */
     public function getAccessTokenResponse($code)
     {
         Log::info('Attempting to get Reddit Access Token', [
@@ -98,5 +117,4 @@ class RedditProvider extends AbstractProvider implements ProviderInterface
             throw $e;
         }
     }
-
 }

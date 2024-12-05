@@ -6,21 +6,34 @@ use App\Services\SocialMedia\Contracts\SocialMediaProvider;
 use Illuminate\Support\Facades\Http;
 use Exception;
 
+/**
+ * Servicio para interactuar con la API de LinkedIn
+ */
 class LinkedinService implements SocialMediaProvider
 {
-    protected $token;
-    protected $apiUrl = 'https://api.linkedin.com/v2';
-    protected $personId;
+    protected $token;                                  // Token de autenticación
+    protected $apiUrl = 'https://api.linkedin.com/v2'; // URL base de la API
+    protected $personId;                              // ID del usuario de LinkedIn
 
+    /**
+     * Constructor: inicializa el servicio y obtiene el ID de usuario
+     */
     public function __construct(string $token)
     {
         $this->token = $token;
         $this->personId = $this->getPersonId();
     }
 
+    /**
+     * Publica contenido en LinkedIn
+     * @param string $content Texto del post
+     * @param array $media Archivos multimedia opcionales
+     * @return array ID y URL del post creado
+     */
     public function publish(string $content, array $media = []): array
     {
         try {
+            // Estructura base del post
             $payload = [
                 'author' => "urn:li:person:{$this->personId}",
                 'lifecycleState' => 'PUBLISHED',
@@ -37,12 +50,14 @@ class LinkedinService implements SocialMediaProvider
                 ]
             ];
 
+            // Si hay archivos multimedia, los procesa
             if (!empty($media)) {
                 $mediaIds = $this->uploadMedia($media);
                 $payload['specificContent']['com.linkedin.ugc.ShareContent']['shareMediaCategory'] = 'IMAGE';
                 $payload['specificContent']['com.linkedin.ugc.ShareContent']['media'] = $mediaIds;
             }
 
+            // Realiza la publicación
             $response = Http::withToken($this->token)
                 ->post("{$this->apiUrl}/ugcPosts", $payload);
 
@@ -61,6 +76,9 @@ class LinkedinService implements SocialMediaProvider
         }
     }
 
+    /**
+     * Obtiene el ID del usuario de LinkedIn
+     */
     protected function getPersonId(): string
     {
         $response = Http::withToken($this->token)
@@ -73,11 +91,16 @@ class LinkedinService implements SocialMediaProvider
         return $response['id'];
     }
 
+    /**
+     * Sube archivos multimedia a LinkedIn
+     * @param array $media Array de archivos a subir
+     * @return array IDs de los archivos subidos
+     */
     protected function uploadMedia(array $media): array
     {
         $mediaAssets = [];
         foreach ($media as $mediaItem) {
-            // Registrar el asset
+            // Registra el asset en LinkedIn
             $registerResponse = Http::withToken($this->token)
                 ->post("{$this->apiUrl}/assets?action=registerUpload", [
                     'registerUploadRequest' => [
@@ -97,7 +120,7 @@ class LinkedinService implements SocialMediaProvider
                     ['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl'];
                 $asset = $registerResponse['value']['asset'];
 
-                // Subir el archivo
+                // Sube el archivo
                 Http::withToken($this->token)
                     ->attach('file', file_get_contents($mediaItem), 'image.jpg')
                     ->post($uploadUrl);
@@ -112,6 +135,9 @@ class LinkedinService implements SocialMediaProvider
         return $mediaAssets;
     }
 
+    /**
+     * Elimina un post de LinkedIn
+     */
     public function delete(string $postId): bool
     {
         try {
@@ -124,12 +150,18 @@ class LinkedinService implements SocialMediaProvider
         }
     }
 
+    /**
+     * Actualiza el token de acceso
+     */
     public function refreshToken(): bool
     {
-        // Implementar lógica de refresh token si es necesario
+        // Pendiente de implementar
         return true;
     }
 
+    /**
+     * Obtiene información de la cuenta
+     */
     public function getAccountInfo(): array
     {
         $response = Http::withToken($this->token)
@@ -138,9 +170,11 @@ class LinkedinService implements SocialMediaProvider
         return $response->json();
     }
 
+    /**
+     * Extrae el ID del post del URN completo
+     */
     protected function extractPostId(string $urn): string
     {
-        // El URN tiene el formato "urn:li:ugcPost:XXXX"
         return str_replace('urn:li:ugcPost:', '', $urn);
     }
 }
